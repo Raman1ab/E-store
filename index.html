@@ -241,8 +241,31 @@
       background: #f9f9f9;
       display: block;
       transition: transform .3s;
+      cursor: zoom-in;
+      position: relative;
     }
     .card:hover .card-img { transform: scale(1.04); }
+    
+    /* Add a subtle zoom icon indicator on hover */
+    .card-img::after {
+      content: '🔍';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card:hover .card-img::after { opacity: 1; }
 
     .card-body {
       padding: 14px;
@@ -612,6 +635,82 @@
     .checkout-box p { font-size: 14px; color: #555; margin-bottom: 24px; line-height: 1.6; }
     .checkout-box .btn-cart { border-radius: 4px; margin-top: 0; }
 
+    /* ── IMAGE LIGHTBOX ── */
+    .lightbox-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(4px);
+      z-index: 4000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      cursor: zoom-out;
+      animation: fadeIn .3s ease;
+    }
+    .lightbox-overlay.open {
+      display: flex;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      font-size: 28px;
+      color: #111;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      z-index: 10;
+      line-height: 1;
+      font-weight: 300;
+    }
+    .lightbox-close:hover {
+      background: #fff;
+      transform: rotate(90deg) scale(1.1);
+    }
+    .lightbox-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: default;
+      animation: zoomIn .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 12px 60px rgba(0, 0, 0, 0.5);
+      background: #fff;
+    }
+    .lightbox-caption {
+      margin-top: 16px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 20px;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+    }
+
     /* ══════════════════════════════════════
        RESPONSIVE — TABLET (max 900px)
     ══════════════════════════════════════ */
@@ -724,6 +823,7 @@
       /* ── PRODUCT CARD ── */
       .card { border-radius: 6px; }
       .card:hover { transform: none; } /* disable lift on touch */
+      .card-img::after { display: none; } /* disable hover zoom icon on mobile */
 
       .card-badge { font-size: 10px; padding: 2px 6px; top: 8px; left: 8px; }
       .wishlist-btn { width: 28px; height: 28px; font-size: 14px; top: 8px; right: 8px; }
@@ -784,6 +884,26 @@
         font-size: 13px;
         padding: 12px 16px;
         bottom: 20px;
+      }
+
+      /* ── LIGHTBOX ── */
+      .lightbox-overlay { padding: 10px; }
+      .lightbox-close {
+        top: 10px;
+        right: 10px;
+        width: 38px;
+        height: 38px;
+        font-size: 24px;
+      }
+      .lightbox-content { max-width: 95vw; max-height: 95vh; }
+      .lightbox-img {
+        max-height: 75vh;
+        border-radius: 6px;
+      }
+      .lightbox-caption {
+        font-size: 13px;
+        padding: 8px 16px;
+        margin-top: 12px;
       }
 
       /* ── FOOTER ── */
@@ -932,6 +1052,8 @@
       <div class="card-badge hot">🔥 HOT</div>
       <button class="wishlist-btn" onclick="toggleWish(this)" title="Add to Wishlist">♡</button>
       <img class="card-img" src="phone.jpg" alt="Smartphone"
+           onclick="openLightbox('phone.jpg', 'Latest Flagship Smartphone — 128GB, 5G Ready, Triple Camera')"
+           style="cursor:zoom-in"
            onerror="this.style.background='#e8f4ff';this.style.display='flex';this.outerHTML='<div class=\'card-img\' style=\'background:#e8f4ff;display:flex;align-items:center;justify-content:center;font-size:72px\'>📱</div>'" />
       <div class="card-body">
         <div class="card-brand">TechBrand</div>
@@ -960,6 +1082,8 @@
       <div class="card-badge new">NEW</div>
       <button class="wishlist-btn" onclick="toggleWish(this)" title="Add to Wishlist">♡</button>
       <img class="card-img" src="cloth.jpg" alt="Clothing"
+           onclick="openLightbox('cloth.jpg', 'Premium Cotton Casual Wear — Unisex, All Sizes, 6 Colors Available')"
+           style="cursor:zoom-in"
            onerror="this.outerHTML='<div class=\'card-img\' style=\'background:#fff0f5;display:flex;align-items:center;justify-content:center;font-size:72px\'>👕</div>'" />
       <div class="card-body">
         <div class="card-brand">StyleHouse</div>
@@ -987,6 +1111,8 @@
       <div class="card-badge" style="background:#6a0dad">LIMITED</div>
       <button class="wishlist-btn" onclick="toggleWish(this)" title="Add to Wishlist">♡</button>
       <img class="card-img" src="shoe.png" alt="Shoes"
+           onclick="openLightbox('shoe.png', 'Comfort Running Shoes — Lightweight, Anti-slip Sole, Men & Women')"
+           style="cursor:zoom-in"
            onerror="this.outerHTML='<div class=\'card-img\' style=\'background:#f0fff0;display:flex;align-items:center;justify-content:center;font-size:72px\'>👟</div>'" />
       <div class="card-body">
         <div class="card-brand">StepUp</div>
@@ -1015,6 +1141,8 @@
       <div class="card-badge new">NEW</div>
       <button class="wishlist-btn" onclick="toggleWish(this)" title="Add to Wishlist">♡</button>
       <img class="card-img" src="powerbank.jpg" alt="Power Bank"
+           onclick="openLightbox('powerbank.jpg', 'Oraimo Power Bank — 20000mAh Fast Charging, Dual USB Ports, LED Display')"
+           style="cursor:zoom-in"
            onerror="this.outerHTML='<div class=\'card-img\' style=\'background:#fff8dc;display:flex;align-items:center;justify-content:center;font-size:72px\'>🔋</div>'" />
       <div class="card-body">
         <div class="card-brand">Oraimo</div>
@@ -1075,6 +1203,17 @@
     Your order will be delivered within <strong>1–3 business days</strong>.<br/>
     A confirmation has been sent to your email.</p>
     <button class="btn-cart" style="border-radius:20px" onclick="closeCheckout()">Continue Shopping</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     IMAGE LIGHTBOX
+══════════════════════════════════════ -->
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()" aria-label="Close">×</button>
+  <div class="lightbox-content" onclick="event.stopPropagation()">
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+    <div class="lightbox-caption" id="lightbox-caption"></div>
   </div>
 </div>
 
@@ -1314,6 +1453,36 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
   }
+
+  // ─── IMAGE LIGHTBOX ────────────────────────────────────────
+  function openLightbox(imgSrc, caption) {
+    const lightbox = document.getElementById('lightbox-overlay');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    
+    lightboxImg.src = imgSrc;
+    lightboxCaption.textContent = caption || '';
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    
+    // Keyboard support - ESC to close
+    document.addEventListener('keydown', handleLightboxKeyboard);
+  }
+
+  function closeLightbox() {
+    const lightbox = document.getElementById('lightbox-overlay');
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleLightboxKeyboard);
+  }
+
+  function handleLightboxKeyboard(e) {
+    if (e.key === 'Escape') {
+      closeLightbox();
+    }
+  }
+
 </script>
 </body>
 </html>
+
